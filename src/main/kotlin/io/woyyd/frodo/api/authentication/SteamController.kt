@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.toEntity
@@ -17,6 +19,7 @@ import java.io.IOException
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import java.time.OffsetDateTime
+import java.util.Base64
 import java.util.Date
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
@@ -26,10 +29,13 @@ class SteamController(private val authenticationService: AuthenticationService, 
 
     val logger = LoggerFactory.getLogger(this::class.java)
 
+    data class SteamLoginRequest(
+        val returnUrl: String
+    )
     @GetMapping("/auth/steam")
     @Throws(IOException::class)
-    fun redirectToSteam(response: HttpServletResponse) {
-        val returnTo: String? = URLEncoder.encode("$callbackUrl/auth/steam/callback", StandardCharsets.UTF_8)
+    fun redirectToSteam(@RequestParam(name="returnUrl", required = true) returnUrl: String, response: HttpServletResponse) {
+        val returnTo: String? = URLEncoder.encode("$callbackUrl/auth/steam/callback?returnurl=$returnUrl", StandardCharsets.UTF_8)
         val steamLoginUrl = ("https://steamcommunity.com/openid/login"
                 + "?openid.ns=http://specs.openid.net/auth/2.0"
                 + "&openid.mode=checkid_setup"
@@ -44,7 +50,7 @@ class SteamController(private val authenticationService: AuthenticationService, 
 
     @GetMapping("/auth/steam/callback")
     @Throws(Exception::class)
-    fun handleSteamCallback(request: HttpServletRequest): ResponseEntity<TokenResponseDto> {
+    fun handleSteamCallback(request: HttpServletRequest, response: HttpServletResponse) {
         try {
             val authenticateSteamUser = authenticationService.authenticateSteamUser(request.parameterMap)
             val issuedAt = OffsetDateTime.now()
@@ -53,11 +59,14 @@ class SteamController(private val authenticationService: AuthenticationService, 
             TokenResponseDto(jwt, issuedAt.plusMinutes(tokenDuration.inWholeMinutes)).also {
                 logger.info("Steam authentication successful for user: $authenticateSteamUser")
             }.let { tokenResponse ->
-                return ResponseEntity.ok(tokenResponse)
+                val returnUrl = request.parameterMap["returnurl"]?.firstOrNull()?.let {
+                    Base64.getDecoder().decode(it).toString(StandardCharsets.UTF_8)
+                } ?: ""
+                response.sendRedirect(returnUrl)
             }
         } catch (e: IllegalArgumentException) {
             logger.error("Steam authentication failed: ${e.message}")
-            return ResponseEntity.badRequest().build()
+//            return ResponseEntity.badRequest().build()
         }
     }
 }
