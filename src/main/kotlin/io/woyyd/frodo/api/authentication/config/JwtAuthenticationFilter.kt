@@ -1,6 +1,7 @@
 package io.woyyd.frodo.api.authentication.config
 
 import io.jsonwebtoken.Jwts
+import io.jsonwebtoken.security.Keys
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -24,9 +25,9 @@ class JwtAuthenticationFilter(
 
             try {
                 val claims = Jwts.parser()
-                    .setSigningKey(jwtSecret.toByteArray()).build()
-                    .parseClaimsJws(token)
-                    .body
+                    .verifyWith(Keys.hmacShaKeyFor(jwtSecret.toByteArray())).build()
+                    .parseSignedClaims(token)
+                    .payload
 
                 val steamId = claims.subject
                 val auth = UsernamePasswordAuthenticationToken(
@@ -36,6 +37,7 @@ class JwtAuthenticationFilter(
 
             } catch (ex: Exception) {
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid token")
+                ex.printStackTrace()
                 return
             }
         }

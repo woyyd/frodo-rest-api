@@ -1,7 +1,7 @@
 package io.woyyd.frodo.api.authentication
 
 import io.jsonwebtoken.Jwts
-import io.jsonwebtoken.SignatureAlgorithm
+import io.jsonwebtoken.security.Keys
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
@@ -10,7 +10,7 @@ import org.springframework.web.client.toEntity
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import java.time.OffsetDateTime
-import java.util.Date
+import java.util.*
 import kotlin.time.Duration
 
 @Service
@@ -59,10 +59,10 @@ class AuthenticationService(@Value("\${jwt.secret}") private val jwtSecret: Stri
 
     fun createJwt(steamId: String, issuedAt: OffsetDateTime, tokenDuration : Duration): String {
         return Jwts.builder()
-            .setSubject(steamId)
-            .setIssuedAt(issuedAt.toDate())
-            .setExpiration(issuedAt.plusSeconds(tokenDuration.inWholeSeconds).toDate())
-            .signWith(SignatureAlgorithm.HS256, jwtSecret.toByteArray())
+            .subject(steamId)
+            .issuedAt(issuedAt.toDate())
+            .expiration(issuedAt.plusSeconds(tokenDuration.inWholeSeconds).toDate())
+            .signWith( Keys.hmacShaKeyFor(jwtSecret.toByteArray()))
             .compact()
 
     }
