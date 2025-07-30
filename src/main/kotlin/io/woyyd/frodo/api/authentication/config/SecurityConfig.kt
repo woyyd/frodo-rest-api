@@ -1,4 +1,4 @@
-package io.woyyd.frodo.api
+package io.woyyd.frodo.api.authentication.config
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean

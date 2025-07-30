@@ -1,4 +1,4 @@
-package io.woyyd.frodo.api
+package io.woyyd.frodo.api.authentication
 
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
@@ -15,8 +15,7 @@ import org.springframework.web.client.toEntity
 import java.io.IOException
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
-import java.util.*
-
+import java.util.Date
 
 @RestController
 class SteamController(@Value("\${jwt.secret}") private val jwtSecret: String) {
@@ -42,6 +41,8 @@ class SteamController(@Value("\${jwt.secret}") private val jwtSecret: String) {
     @GetMapping("/auth/steam/callback")
     @Throws(Exception::class)
     fun handleSteamCallback(request: HttpServletRequest): ResponseEntity<String?> {
+
+        //TODO: Add authentication service
 
         val x =
             request.parameterMap.filter { it.key.startsWith("openid") }.mapValues { it.value.first() }.toMutableMap()

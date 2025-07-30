@@ -1,4 +1,4 @@
-package io.woyyd.frodo.api
+package io.woyyd.frodo.api.authentication.config
 
 import io.jsonwebtoken.Jwts
 import jakarta.servlet.FilterChain
