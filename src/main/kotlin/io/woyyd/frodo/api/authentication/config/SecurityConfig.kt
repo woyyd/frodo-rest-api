@@ -1,4 +1,4 @@
-package io.woyyd.frodo.api
+package io.woyyd.frodo.api.authentication.config
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
@@ -15,7 +15,7 @@ class SecurityConfig(
     @Bean
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
         http
-            .csrf().disable()
+            .csrf{csrf -> csrf.disable()}
             .authorizeHttpRequests { auth ->
                 auth.requestMatchers("/auth/**").permitAll()
                     .anyRequest().authenticated()
