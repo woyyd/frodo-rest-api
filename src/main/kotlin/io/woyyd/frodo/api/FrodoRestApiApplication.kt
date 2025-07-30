@@ -1,4 +1,4 @@
-package io.woyyd.frodo_rest_api
+package io.woyyd.frodo.api
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
